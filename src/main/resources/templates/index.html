@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Habit Tracker</title>
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 500px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        form {
+            display: flex;
+            gap: 8px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+        }
+
+        button {
+            padding: 12px;
+        }
+
+        .habit {
+            padding: 12px;
+            margin-top: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Habit Tracker</h1>
+
+<form action="/habits" method="post">
+    <input name="name" placeholder="Habit name">
+    <button>Add</button>
+</form>
+
+<div th:each="habit : ${habits}"
+     class="habit">
+
+    <span th:text="${habit.name}"></span>
+
+</div>
+
+</body>
+</html>
