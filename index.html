@@ -2,35 +2,252 @@
 <html>
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Hello App</title>
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+    />
+
+    <title>Habit Tracker</title>
 
     <link rel="manifest" href="manifest.json">
 
     <meta name="theme-color" content="#ffffff">
 
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            font-size: 32px;
+
+        * {
+            box-sizing: border-box;
         }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f4f6;
+            color: #111827;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 24px 16px 80px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        input {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid #d1d5db;
+            font-size: 16px;
+        }
+
+        button {
+            border: none;
+            border-radius: 12px;
+            padding: 14px 18px;
+            cursor: pointer;
+        }
+
+        .add-btn {
+            background: #111827;
+            color: white;
+        }
+
+        .habit-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .habit-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .habit-name {
+            font-size: 18px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .done-btn {
+            background: #10b981;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
     </style>
 </head>
+
 <body>
 
-    Hello World
+<div class="container">
 
-    <script>
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("sw.js");
-        }
-    </script>
+    <h1>Habit Tracker</h1>
+
+    <div class="input-row">
+
+        <input
+                type="text"
+                id="habitInput"
+                placeholder="Enter habit"
+        />
+
+        <button
+                class="add-btn"
+                id="addBtn"
+        >
+            Add
+        </button>
+
+    </div>
+
+    <div
+            id="habitList"
+            class="habit-list"
+    ></div>
+
+</div>
+
+<script>
+
+    const habitInput =
+        document.getElementById("habitInput");
+
+    const addBtn =
+        document.getElementById("addBtn");
+
+    const habitList =
+        document.getElementById("habitList");
+
+    let habits =
+        JSON.parse(localStorage.getItem("habits"))
+        || [];
+
+    function saveHabits() {
+
+        localStorage.setItem(
+            "habits",
+            JSON.stringify(habits)
+        );
+    }
+
+    function renderHabits() {
+
+        habitList.innerHTML = "";
+
+        habits.forEach(habit => {
+
+            const card =
+                document.createElement("div");
+
+            card.className = "habit-card";
+
+            card.innerHTML = `
+
+                <div class="habit-name ${habit.completed ? "completed" : ""}">
+                    ${habit.name}
+                </div>
+
+                <div class="actions">
+
+                    <button class="done-btn">
+                        ${habit.completed ? "Undo" : "Done"}
+                    </button>
+
+                    <button class="delete-btn">
+                        Delete
+                    </button>
+
+                </div>
+            `;
+
+            const doneBtn =
+                card.querySelector(".done-btn");
+
+            doneBtn.addEventListener("click", () => {
+
+                habit.completed =
+                    !habit.completed;
+
+                saveHabits();
+
+                renderHabits();
+            });
+
+            const deleteBtn =
+                card.querySelector(".delete-btn");
+
+            deleteBtn.addEventListener("click", () => {
+
+                habits = habits.filter(
+                    h => h.id !== habit.id
+                );
+
+                saveHabits();
+
+                renderHabits();
+            });
+
+            habitList.appendChild(card);
+        });
+    }
+
+    addBtn.addEventListener("click", () => {
+
+        const name =
+            habitInput.value.trim();
+
+        if (!name) return;
+
+        habits.push({
+            id: Date.now(),
+            name,
+            completed: false
+        });
+
+        saveHabits();
+
+        renderHabits();
+
+        habitInput.value = "";
+    });
+
+    renderHabits();
+
+    if ("serviceWorker" in navigator) {
+
+        navigator.serviceWorker.register("sw.js");
+    }
+
+</script>
 
 </body>
 </html>
