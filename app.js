@@ -120,6 +120,10 @@ function render() {
     card.appendChild(grid);
     habitList.appendChild(card);
   });
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
 }
 
 /* ── Add ── */
