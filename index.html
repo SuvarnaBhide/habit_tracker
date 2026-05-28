@@ -2,52 +2,94 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-
-    <title>Bloom · Habit Tracker</title>
-
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json" />
-
-    <meta name="theme-color" content="#f6efe7" />
-
-    <!-- iOS PWA -->
+    <meta name="theme-color" content="#f5f4ef" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Bloom" />
-
-    <!-- Icons -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="description" content="Bloom — calm habit tracker" />
+    <link rel="manifest" href="manifest.json" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
-    <link rel="icon" href="icons/icon-192.png" />
-
-    <!-- Fonts -->
+    <title>Bloom</title>
+    <link rel="stylesheet" href="style.css" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Nunito:wght@400;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,400;1,600&family=Nunito:wght@400;600;700;800&display=swap"
       rel="stylesheet"
     />
-
-    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   </head>
   <body>
-    <div class="container">
-      <header>
-        <span class="eyebrow">bloom · habit tracker</span>
-        <h1>My <em>Habits</em></h1>
-      </header>
+    <!-- ════════════════════ HOME PAGE ════════════════════ -->
+    <div id="homePage" class="page active">
+      <div class="home-scroll">
+        <div class="home-header">
+          <span class="eyebrow">bloom</span>
+          <h1><em>Habit</em> Tracker</h1>
+        </div>
 
-      <div class="card input-card">
-        <input
-          type="text"
-          id="habitInput"
-          placeholder="Add a new habit…"
-          autocomplete="off"
-          autocorrect="off"
-        />
-        <button id="addBtn" onclick="addHabit()" aria-label="Add habit">
+        <!-- overall progress -->
+        <div class="overall-bar-wrap" id="overallBar">
+          <span class="overall-label">Overall</span>
+          <div class="overall-bar-track">
+            <div
+              class="overall-bar-fill"
+              id="overallFill"
+              style="width: 0%"
+            ></div>
+          </div>
+          <span class="overall-pct" id="overallPct">0%</span>
+        </div>
+
+        <!-- add habit row -->
+        <div class="input-row">
+          <input
+            type="text"
+            id="habitInput"
+            placeholder="Add a habit…"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="sentences"
+          />
+          <button
+            class="btn-add"
+            id="addBtn"
+            onclick="openAddHabit()"
+            aria-label="Add"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2.8"
+              stroke-linecap="round"
+            >
+              <line x1="12" y1="4" x2="12" y2="20" />
+              <line x1="4" y1="12" x2="20" y2="12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- sections + habits render target -->
+        <div id="habitList"></div>
+
+        <div class="empty-state" id="emptyState">
+          <span class="empty-icon">🌱</span>
+          <p>No habits yet.<br />Start with one small thing.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════ DETAIL PAGE ════════════════════ -->
+    <div id="detailPage" class="page">
+      <div class="detail-topbar">
+        <button class="btn-back" onclick="goHome()">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -57,50 +99,134 @@
             stroke="currentColor"
             stroke-width="2.5"
             stroke-linecap="round"
+            stroke-linejoin="round"
           >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="15 18 9 12 15 6" />
           </svg>
-          Add
         </button>
+        <span class="detail-title" id="detailTitle"></span>
+        <div class="detail-tabs">
+          <button
+            class="tab-btn active"
+            id="tabCalBtn"
+            onclick="switchTab('cal')"
+          >
+            Calendar
+          </button>
+          <button class="tab-btn" id="tabStatBtn" onclick="switchTab('stat')">
+            Stats
+          </button>
+        </div>
       </div>
 
-      <div id="habitList"></div>
+      <div class="detail-scroll">
+        <!-- calendar tab -->
+        <div id="tabCal">
+          <div class="month-nav">
+            <button onclick="detailMonthShift(-1)">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <span class="month-label" id="detailMonthLabel"></span>
+            <button onclick="detailMonthShift(1)">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
+          <div class="cal-grid" id="detailCalGrid"></div>
+          <!-- notes list -->
+          <div id="detailNotesList"></div>
+        </div>
 
-      <div class="empty-state" id="emptyState">
-        <div class="empty-icon">🌿</div>
-        <p>No habits yet.<br />Build something worth keeping.</p>
-      </div>
-    </div>
-
-    <!-- Day picker -->
-    <div class="picker-overlay" id="pickerOverlay">
-      <div class="picker" onclick="event.stopPropagation()">
-        <p class="picker-title" id="pickerTitle"></p>
-        <div class="picker-options">
-          <button class="pick-btn pick-done" onclick="setPick('done')">
-            <span class="pick-circle"></span>Done
-          </button>
-          <button class="pick-btn pick-warn" onclick="setPick('warn')">
-            <span class="pick-circle"></span>Partial
-          </button>
-          <button class="pick-btn pick-miss" onclick="setPick('miss')">
-            <span class="pick-circle"></span>Missed
-          </button>
-          <button class="pick-btn pick-skip" onclick="setPick('skip')">
-            <span class="pick-circle"></span>Skip
-          </button>
-          <button class="pick-btn pick-clear" onclick="setPick('empty')">
-            Clear
-          </button>
+        <!-- stats tab -->
+        <div id="tabStat" style="display: none">
+          <div class="stat-row" id="detailStatChips"></div>
+          <div class="chart-wrap">
+            <p class="chart-title">Last 30 days</p>
+            <canvas id="lineChart" height="180"></canvas>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Edit modal -->
-    <div class="modal-overlay" id="editOverlay" role="dialog" aria-modal="true">
+    <!-- ════ INLINE PICKER (global, moved via JS) ════ -->
+    <div class="inline-picker" id="inlinePicker">
+      <div class="picker-dots">
+        <button
+          class="cp-dot cp-green"
+          onclick="setPick('done')"
+          title="Done"
+        ></button>
+        <button
+          class="cp-dot cp-yellow"
+          onclick="setPick('warn')"
+          title="Partial"
+        ></button>
+        <button
+          class="cp-dot cp-red"
+          onclick="setPick('miss')"
+          title="Missed"
+        ></button>
+        <button
+          class="cp-dot cp-grey"
+          onclick="setPick('skip')"
+          title="Skip"
+        ></button>
+        <button
+          class="cp-dot cp-clear"
+          onclick="setPick('empty')"
+          title="Clear"
+        >
+          ✕
+        </button>
+      </div>
+      <div class="picker-note">
+        <div class="picker-note-row">
+          <span class="note-hint">note (optional)</span>
+          <button
+            class="btn-note-del"
+            id="noteDelBtn"
+            onclick="deletePickNote()"
+            title="Delete note"
+            style="display: none"
+          >
+            ✕
+          </button>
+        </div>
+        <textarea
+          id="pickerNoteInput"
+          rows="2"
+          placeholder="Add a note…"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- ════ ADD / EDIT HABIT MODAL ════ -->
+    <div class="modal-overlay" id="habitModal" role="dialog" aria-modal="true">
       <div class="modal" onclick="event.stopPropagation()">
-        <button class="modal-close" onclick="closeEdit()" aria-label="Close">
+        <button class="modal-close" onclick="closeHabitModal()">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="14"
@@ -115,24 +241,73 @@
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
-        <p class="modal-label">Edit habit</p>
-        <input type="text" id="editInput" placeholder="Update habit name…" />
+        <p class="modal-label" id="habitModalLabel">Add habit</p>
+
+        <div>
+          <div class="modal-field-label">Name</div>
+          <input
+            type="text"
+            id="hmName"
+            placeholder="Habit name…"
+            autocapitalize="sentences"
+          />
+        </div>
+
+        <div>
+          <div class="modal-field-label">Section (optional)</div>
+          <select id="hmSection"></select>
+        </div>
+
+        <div>
+          <div class="modal-field-label">Type</div>
+          <div class="type-toggle">
+            <button
+              class="type-btn active"
+              id="typeMark"
+              onclick="setHabitType('mark')"
+            >
+              Marking
+            </button>
+            <button
+              class="type-btn"
+              id="typeMeas"
+              onclick="setHabitType('meas')"
+            >
+              Measurement
+            </button>
+          </div>
+        </div>
+
+        <div id="measFields" style="display: none">
+          <div class="modal-field-label">Target quantity &amp; unit</div>
+          <div class="measurement-fields">
+            <input
+              type="number"
+              id="hmQty"
+              placeholder="e.g. 2"
+              min="0"
+              style="max-width: 90px"
+            />
+            <input type="text" id="hmUnit" placeholder="e.g. glasses, km…" />
+          </div>
+        </div>
+
         <div class="modal-actions">
-          <button class="btn-cancel" onclick="closeEdit()">Cancel</button>
-          <button class="btn-save" onclick="saveEdit()">Save</button>
+          <button class="btn-cancel" onclick="closeHabitModal()">Cancel</button>
+          <button class="btn-save" onclick="saveHabitModal()">Save</button>
         </div>
       </div>
     </div>
 
-    <!-- Delete confirm modal -->
+    <!-- ════ SECTION MODAL ════ -->
     <div
       class="modal-overlay"
-      id="deleteOverlay"
+      id="sectionModal"
       role="dialog"
       aria-modal="true"
     >
       <div class="modal" onclick="event.stopPropagation()">
-        <button class="modal-close" onclick="closeDelete()" aria-label="Close">
+        <button class="modal-close" onclick="closeSectionModal()">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="14"
@@ -147,21 +322,64 @@
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
-        <p class="modal-label delete-label">Are you sure?</p>
-        <div class="delete-body">
-          <div class="delete-icon">🗑️</div>
-          <p class="delete-question">You're about to delete</p>
-          <p class="delete-item-name" id="deleteHabitName"></p>
+        <p class="modal-label" id="sectionModalLabel">Add section</p>
+        <div>
+          <div class="modal-field-label">Section name</div>
+          <input
+            type="text"
+            id="smName"
+            placeholder="e.g. Health, Morning…"
+            autocapitalize="words"
+          />
         </div>
         <div class="modal-actions">
-          <button class="btn-cancel" onclick="closeDelete()">Keep it</button>
-          <button class="btn-confirm-delete" onclick="confirmDelete()">
-            Yes, delete
+          <button class="btn-cancel" onclick="closeSectionModal()">
+            Cancel
+          </button>
+          <button class="btn-save" onclick="saveSectionModal()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ DELETE MODAL ════ -->
+    <div class="modal-overlay" id="deleteModal" role="dialog" aria-modal="true">
+      <div class="modal" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeDeleteModal()">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+        <p class="modal-label danger-label" id="deleteModalLabel">Delete?</p>
+        <div class="delete-body">
+          <p class="delete-item-name" id="deleteModalName"></p>
+          <p class="delete-sub" id="deleteModalSub"></p>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeDeleteModal()">
+            Keep it
+          </button>
+          <button class="btn-confirm-delete" onclick="confirmDeleteModal()">
+            Delete
           </button>
         </div>
       </div>
     </div>
 
     <script src="app.js"></script>
+    <!-- <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("sw.js").catch(() => {});
+      }
+    </script> -->
   </body>
 </html>
