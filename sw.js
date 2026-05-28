@@ -1,10 +1,10 @@
 const CACHE = "bloom-v1";
 const ASSETS = [
-  "./",
-  "./index.html",
-  "./style.css",
-  "./app.js",
-  "./manifest.json",
+    "/habit_tracker/",
+    "/habit_tracker/index.html",
+    "/habit_tracker/styles.css",
+    "/habit_tracker/app.js",
+    "/habit_tracker/manifest.json"
 ];
 
 self.addEventListener("install", (e) => {
